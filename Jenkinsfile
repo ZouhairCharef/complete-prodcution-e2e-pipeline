@@ -91,6 +91,7 @@ pipeline{
                     if (ret != 0) {
                         error("Failed to trigger CD Pipeline!")
                     }
+                }
             }
 
         }
