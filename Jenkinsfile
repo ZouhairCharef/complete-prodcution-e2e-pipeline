@@ -79,8 +79,18 @@ pipeline{
         stage("Trigger CD Pipeline") {
             steps {
                 script {
-                    sh "curl -v -k --user admin:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'https://192.168.50.10:8080/job/gitops-complete-pipeline/buildWithParameters?token=gitops-token'"
-                }
+                    // Try with TLSv1.2
+                    def ret = sh(script: "curl -v -k --tlsv1.2 --user admin:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'https://192.168.50.10:8080/job/gitops-complete-pipeline/buildWithParameters?token=gitops-token'", returnStatus: true)
+                    
+                    // If TLSv1.2 fails, try with TLSv1.3
+                    if (ret != 0) {
+                        ret = sh(script: "curl -v -k --tlsv1.3 --user admin:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'https://192.168.50.10:8080/job/gitops-complete-pipeline/buildWithParameters?token=gitops-token'", returnStatus: true)
+                    }
+
+                    // If both attempts fail, throw an error
+                    if (ret != 0) {
+                        error("Failed to trigger CD Pipeline!")
+                    }
             }
 
         }
