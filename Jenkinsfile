@@ -76,6 +76,14 @@ pipeline{
 
         }
 
+        stage("TEST TOKEN EXISTENCE") {
+            steps {
+                sh '''
+                    echo "Using the token: $JENKINS_API_TOKEN"
+                '''
+            }
+        }
+
         stage("Trigger CD Pipeline") {
             steps {
                 script {
